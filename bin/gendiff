@@ -23,5 +23,5 @@ DOC;
 
 $result = Docopt::handle($doc, array('version' => '1.0'));
 foreach ($result as $k => $v) {
-  echo $k .': ' . json_encode($v) . PHP_EOL;
+    echo $k . ': ' . json_encode($v) . PHP_EOL;
 }
