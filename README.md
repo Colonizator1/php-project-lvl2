@@ -10,3 +10,4 @@ or global install
 ```bash
 composer global require colonizator/getdiff
 ```
+[![asciicast](https://asciinema.org/a/9eBOQbqXPmiWDzCJZ2I3ILBoP.svg)](https://asciinema.org/a/9eBOQbqXPmiWDzCJZ2I3ILBoP)
