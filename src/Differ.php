@@ -62,7 +62,7 @@ function genDiff($firstFilePath, $secondFilePath, $options = [])
     print_r("\nDocopt parse options\n");
     print_r($options);
     print_r("\nResult\n");
-    print_r($result);
     */
+    print_r($result);
     return $result;
 }
