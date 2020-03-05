@@ -4,9 +4,9 @@ My First PHP-project
 
 ## Installing
 ```bash
-composer require colonizator/gendiff
+composer require colonizator/getdiff
 ```
 or global install
 ```bash
-composer global require colonizator/gendiff
+composer global require colonizator/getdiff
 ```

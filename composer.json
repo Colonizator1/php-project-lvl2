@@ -21,10 +21,10 @@
         "phpcs": "phpcs"
     },    
     "require": {
-        "funct/funct": "^1.5"
+        "funct/funct": "^1.5",
+        "docopt/docopt": "^1.0"
     },
     "require-dev": {
-        "docopt/docopt": "^1.0",
         "squizlabs/php_codesniffer": "^3.5"
     }
 }
