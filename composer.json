@@ -1,6 +1,6 @@
 {
-    "name": "colonizator/gendiff",
-    "description": "second project on php - gendiff",
+    "name": "colonizator/getdiff",
+    "description": "second project on php - getdiff",
     "type": "library",
     "license": "MIT",
     "authors": [
