@@ -12,7 +12,7 @@ class DifferTest extends TestCase
     {
         $fileOne = "tests/fixtures/before.json";
         $fileTwo = "tests/fixtures/after.json";
-        $expected2 = file_get_contents("tests/fixtures/result");
+        $expected2 = file_get_contents("tests/fixtures/json_result");
         $this->assertEquals($expected2, getDiff($fileOne, $fileTwo));
     }
 }

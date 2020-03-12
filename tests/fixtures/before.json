@@ -1,5 +1,15 @@
 {
     "host": "hexlet.io",
     "timeout": 50,
-    "proxy": "123.234.53.22"
+    "proxy": "123.234.53.22",
+    "options": {
+        "type": "get",
+        "protocol": "http",
+        "bool": true
+    },
+    "lang": {
+        "name": "EN",
+        "string": "english"
+    },
+    "fruits": ["apple", "orange"]
 }
