@@ -3,6 +3,7 @@
 namespace Differ;
 
 use Tightenco\Collect;
+use Symfony\Component\Yaml\Yaml;
 
 function startDiff()
 {
@@ -24,21 +25,6 @@ DOC;
     $secondFile = $result->args['<secondFile>'];
     getDiff($firstFile, $secondFile, $result->args);
 }
-function parse($path)
-{
-    try {
-        $path_parts = pathinfo($path);
-        $file = file_get_contents($path);
-        if ($path_parts['extension'] == 'json') {
-            return json_decode($file);
-        } elseif ($path_parts['extension'] == 'yml') {
-            return;
-        }
-        throw new \Exception("File doesn't have json or yml extention");
-    } catch (\Exception $e) {
-        echo $e->getMessage(), "\n";
-    }
-}
 
 function getDiff($firstFilePath, $secondFilePath, $options = [])
 {
@@ -53,18 +39,28 @@ function getDiff($firstFilePath, $secondFilePath, $options = [])
     //$testStdfunc = Collection\flattenAll($testStd);
 
     //print_r("\nFirst config\n");
-    print_r($dataWithAction);
+    //print_r($dataWithAction);
 
-    
+    $result = "{\n" . $result . "\n}\n";
     if ($options) {
         print_r($result);
     }
     return $result;
 }
-
-function getStrFromBool($bool)
+function parse($path)
 {
-    return $bool ? 'true' : 'false';
+    try {
+        $path_parts = pathinfo($path);
+        $file = file_get_contents($path);
+        if ($path_parts['extension'] == 'json') {
+            return json_decode($file);
+        } elseif ($path_parts['extension'] == 'yaml') {
+            return Yaml::parse($file, Yaml::PARSE_OBJECT_FOR_MAP);
+        }
+        throw new \Exception("File doesn't have json or yaml extention");
+    } catch (\Exception $e) {
+        echo $e->getMessage(), "\n";
+    }
 }
 
 function diffTree($firstNode, $secondNode)
@@ -114,40 +110,95 @@ function diffTree($firstNode, $secondNode)
         }
     }
     return $tree;
-    $diffFirst = diffTree($firstNode, $secondNode);
-    print_r("\nFirst collect\n");
-    print_r($firstNode);
-    print_r("\second collect\n");
-    print_r($secondNode);
-    print_r("\Diff\n");
-    print_r($diffFirst);
+    //$diffFirst = diffTree($firstNode, $secondNode);
+    //print_r("\nFirst collect\n");
+    //print_r($firstNode);
+    //print_r("\second collect\n");
+    //print_r($secondNode);
+    //print_r("\Diff\n");
+    //print_r($diffFirst);
     //print_r("\With Action\n");
     //print_r($dataWithAction);
 }
+
+function render($tree, $level = 1)
+{
+    $spacesCol = 2;
+    $spacesCol = $spacesCol * ($level + $level - 1);
+    $space = str_repeat(" ", $spacesCol);
+    $result = array_reduce($tree, function ($acc, $node) use ($space, $level) {
+        if (!$node['children']) {
+            if ($node['status'] == 'add') {
+                $acc[] = "{$space}+ {$node['key']}: " . getStr($node['newValue'], $level);
+            } elseif ($node['status'] == 'delete') {
+                $acc[] = "{$space}- {$node['key']}: " . getStr($node['oldValue'], $level);
+            } elseif ($node['status'] == 'unchanged') {
+                $acc[] = "{$space}  {$node['key']}: " . getStr($node['oldValue'], $level);
+            } else {
+                $acc[] = "{$space}- {$node['key']}: " . getStr($node['oldValue'], $level);
+                $acc[] = "{$space}+ {$node['key']}: " . getStr($node['newValue'], $level);
+            }
+        } else {
+            switch ($node['status']) {
+                case 'add':
+                    $sign = '+';
+                    break;
+                case 'delete':
+                    $sign = '-';
+                    break;
+                case 'unchanged':
+                    $sign = ' ';
+                    break;
+                case 'changed':
+                    $sign = ' ';
+                    break;
+            }
+            $acc[] = "$space$sign {$node['key']}: {";
+            $acc[] = render($node['children'], ++$level);
+            $acc[] = "$space}";
+        }
+        return $acc;
+    }, []);
+    return implode("\n", $result);
+}
+
 function getStrFromNode($collection, $level = 0)
 {
+    $spacesCol = 2;
+    $spacesCol = $spacesCol * ($level + $level - 1);
+    $space = str_repeat(" ", $spacesCol);
+    $spaceBeforeCloseBracket = str_repeat(" ", $spacesCol - 2);
+    $nodeData = [];
+
     if (is_array($collection)) {
         $openBreacket = '[';
         $closeBreacket = ']';
+        $nodeData[] = "$openBreacket";
+        ++$level;
+        foreach ($collection as $value) {
+            $nodeData[] = is_array($value) || is_object($value)
+            ? "{$space}  " . getStrFromNode($value, $level)
+            : "{$space}  " . getStr($value);
+        }
+        $level++;
+        $nodeData[] = "{$spaceBeforeCloseBracket}$closeBreacket";
     }
     if (is_object($collection)) {
         $openBreacket = '{';
         $closeBreacket = '}';
+        $nodeData[] = "$openBreacket";
+        ++$level;
+        foreach ($collection as $key => $value) {
+            $nodeData[] = is_array($value) || is_object($value)
+            ? "{$space}  $key: " . getStrFromNode($value, $level)
+            : "{$space}  $key: " . getStr($value, $level);
+        }
+        $nodeData[] = "{$spaceBeforeCloseBracket}$closeBreacket";
     }
-    $spaces = str_repeat("  ", $level);
-    $result = [];
-    $result[] = "{$spaces}$openBreacket";
-    foreach ($collection as $value) {
-        $result[] = is_array($value) || is_object($value)
-        ? getStrFromNode($value, ++$level)
-        : "{$spaces}  " . getStr($value);
-    }
-    $result[] = "{$spaces}$closeBreacket";
-
-    return implode("\n", $result);
+    return implode("\n", $nodeData);
 }
 
-function getStr($value)
+function getStr($value, $level = 0)
 {
     switch (gettype($value)) {
         case 'boolean':
@@ -157,154 +208,15 @@ function getStr($value)
             return "null";
             break;
         case 'array':
-            return getStrFromNode($value);
+            return getStrFromNode($value, ++$level);
             break;
         case 'object':
-            return getStrFromNode($value);
+            return getStrFromNode($value, ++$level);
             break;
         default:
             return "$value";
             break;
     }
 }
-
-function render($tree, $level = 1) {
-    $spaces = str_repeat("  ", $level);
-    $result = array_reduce($tree, function ($acc, $node) use ($spaces, $level) {
-        if ($node['children']) {
-            $acc[] = "$spaces{";
-            $acc[] = render($node['children'], $level++);
-            $acc[] = "$spaces}";
-        } else {
-            if ($node['status'] == 'add') {
-                $acc[] = "{$spaces}+ {$node['key']}: " . getStr($node['newValue']) . "\n";
-            } elseif ($node['status'] == 'delete') {
-                $acc[] = "{$spaces}- {$node['key']}: " . getStr($node['oldValue']) . "\n";
-            } elseif ($node['status'] == 'unchanged') {
-                $acc[] = "{$spaces}  {$node['key']}: " . getStr($node['oldValue']) . "\n";
-            } else {
-                $acc[] = "{$spaces}- {$node['key']}: " . getStr($node['oldValue']) . "\n";
-                $acc[] = "{$spaces}+ {$node['key']}: " . getStr($node['newValue']) . "\n";
-            }
-        }
-    }, []);
-    return "{\n" . implode("\n", $result) . "\n}";
-}
-function renderDiff($tree, $spaceCol = 4)
-{
-    return array_reduce($tree, function ($acc, $value) use ($spaceCol) {
-        $spaces = str_repeat(" ", $spaceCol);
-        if ($value['type'] == 'array') {
-            $openBreacket = '[';
-            $closeBreacket = ']';
-        }
-        if ($value['type'] == 'assoc') {
-            $openBreacket = '{';
-            $closeBreacket = '}';
-        }
-        if ($value['type'] == 'string') {
-            if ($value['status'] == 'add') {
-                $acc .= "{$spaces}+ {$value['key']}: {$value['value']}\n";
-            } elseif ($value['status'] == 'del') {
-                $acc .= "{$spaces}- {$value['key']}: {$value['value']}\n";
-            } elseif ($value['status'] == 'unchanged') {
-                $acc .= "{$spaces}  {$value['key']}: {$value['value']}\n";
-            } else {
-                $acc .= "{$spaces}- {$value['key']}: {$value['old_value']}\n";
-                $acc .= "{$spaces}+ {$value['key']}: {$value['value']}\n";
-            }
-        } elseif ($value['type'] == 'array' || $value['type'] == 'assoc') {
-            if ($value['status'] == 'del') {
-                $acc .= "{$spaces}- {$value['key']}: $openBreacket\n";
-                $acc .= renderDiff($value['value'], $spaceCol * 2);
-                $acc .= "{$spaces}  $closeBreacket\n";
-            } elseif ($value['status'] == 'add') {
-                $acc .= "{$spaces}+ {$value['key']}: $openBreacket\n";
-                $acc .= renderDiff($value['value'], $spaceCol * 2);
-                $acc .= "{$spaces}  $closeBreacket\n";
-            } else {
-                $acc .= "{$spaces}  {$value['key']}: $openBreacket\n";
-                $acc .= renderDiff($value['value'], $spaceCol * 2);
-                $acc .= "{$spaces}  $closeBreacket\n";
-            }
-        }
-        return $acc;
-    }, '');
-}
-
-function buildDiff($tree, $firstNode, $secondNode)
-{
-    $values = array_map(function ($key, $value) use ($tree, $firstNode, $secondNode) {
-        $type = 'string';
-        if (!array_key_exists($key, $firstNode)) {
-            if (is_array($secondNode[$key])) {
-                $type = isset($secondNode[$key][0]) ? 'array' : 'assoc';
-                return [
-                    'status' => 'add',
-                    'type' => $type,
-                    'key' => "$key",
-                    'value' => buildDiff($value, $tree[$key], $secondNode[$key])
-                ];
-            }
-            return [
-                'status' => 'add',
-                'type' => $type,
-                'key' => "$key",
-                'value' => is_bool($value) ? getStrFromBool($value) : $value
-            ];
-        } elseif (!array_key_exists($key, $secondNode)) {
-            if (is_array($firstNode[$key])) {
-                $type = isset($firstNode[$key][0]) ? 'array' : 'assoc';
-                return [
-                    'status' => 'del',
-                    'type' => $type,
-                    'key' => "$key",
-                    'value' => buildDiff($value, $firstNode[$key], $tree[$key])
-                ];
-            }
-            return [
-                'status' => 'del',
-                'type' => $type,
-                'key' => "$key",
-                'value' => is_bool($value) ? getStrFromBool($value) : $value
-            ];
-        } elseif ($firstNode[$key] == $secondNode[$key]) {
-            if (is_array($value)) {
-                $type = isset($value[0]) ? 'array' : 'assoc';
-                return [
-                    'status' => 'unchanged',
-                    'type' => $type,
-                    'key' => "$key",
-                    'value' => buildDiff($value, $firstNode[$key], $secondNode[$key])
-                ];
-            }
-            return [
-                'status' => 'unchanged',
-                'type' => $type,
-                'key' => "$key",
-                'value' => is_bool($value) ? getStrFromBool($value) : $value
-            ];
-        } else {
-            if (is_array($firstNode[$key]) && is_array($secondNode[$key])) {
-                $type = isset($value[0]) ? 'array' : 'assoc';
-                return [
-                    'status' => 'change',
-                    'type' => $type,
-                    'key' => "$key",
-                    'value' => buildDiff($value, $firstNode[$key], $secondNode[$key])
-                ];
-            }
-            return [
-                'status' => 'change',
-                'type' => $type,
-                'key' => "$key",
-                'old_value' => $firstNode[$key],
-                'value' => is_bool($value) ? getStrFromBool($value) : $value
-            ];
-        }
-    }, array_keys($tree), $tree);
-    return $values;
-}
-
 //print_r(diffTree(parse("../tests/fixtures/before.json"), parse("../tests/fixtures/after.json")));
 //getdiff('../tests/fixtures/before.json', '../tests/fixtures/after.json');

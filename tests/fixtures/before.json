@@ -11,5 +11,8 @@
         "name": "EN",
         "string": "english"
     },
-    "fruits": ["apple", "orange"]
+    "fruits": [
+        "apple",
+        "orange"
+    ]
 }

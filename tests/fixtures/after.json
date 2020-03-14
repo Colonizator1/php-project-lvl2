@@ -17,5 +17,11 @@
             "specialization": "lang"
         }    
     },
-    "fruits": ["apple", "orange", ["banana"]]
+    "fruits": [
+        "apple",
+        "orange",
+        [
+            "banana"
+        ]
+    ]
 }

@@ -1,0 +1,23 @@
+---
+timeout: 20
+verbose: true
+host: "hexlet.io"
+options:
+  type: "get"
+  protocol: "https"
+  some: "value"
+
+group:
+  first:
+    name: "A"
+    specialization: "math"
+
+  second:
+    name: "B"
+    specialization: "lang"
+
+fruits:
+  - "apple"
+  - "orange"
+  -
+    - "banana"

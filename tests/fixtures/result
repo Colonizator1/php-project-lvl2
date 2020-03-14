@@ -1,0 +1,39 @@
+{
+    host: hexlet.io
+  - timeout: 50
+  + timeout: 20
+  - proxy: 123.234.53.22
+    options: {
+        type: get
+      - protocol: http
+      + protocol: https
+      - bool: true
+      + some: value
+  }
+  - lang: {
+        name: EN
+        string: english
+    }
+  - fruits: [
+        apple
+        orange
+    ]
+  + fruits: [
+        apple
+        orange
+        [
+            banana
+        ]
+    ]
+  + verbose: true
+  + group: {
+        first: {
+            name: A
+            specialization: math
+        }
+        second: {
+            name: B
+            specialization: lang
+        }
+    }
+}

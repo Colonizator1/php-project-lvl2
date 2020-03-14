@@ -10,9 +10,14 @@ class DifferTest extends TestCase
 {
     public function testDiff()
     {
-        $fileOne = "tests/fixtures/before.json";
-        $fileTwo = "tests/fixtures/after.json";
-        $expected2 = file_get_contents("tests/fixtures/json_result");
-        $this->assertEquals($expected2, getDiff($fileOne, $fileTwo));
+        $expected = file_get_contents("tests/fixtures/result");
+
+        $jsonOne = "tests/fixtures/before.json";
+        $jsonTwo = "tests/fixtures/after.json";
+        $this->assertEquals($expected, getDiff($jsonOne, $jsonTwo));
+
+        $yamlOne = "tests/fixtures/before.yaml";
+        $yamlTwo = "tests/fixtures/after.yaml";
+        $this->assertEquals($expected, getDiff($yamlOne, $yamlTwo));
     }
 }
