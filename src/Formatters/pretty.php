@@ -40,14 +40,14 @@ function renderPretty($tree, $level = 0)
     $result = array_reduce($tree, function ($acc, $node) use ($level) {
         if (!$node['children']) {
             if ($node['status'] == 'add') {
-                $acc[] = getSpace($level) . "+ " . getString($node['key'], $node['newValue'], $level);
+                $acc[] = getSpace($level) . "+ " . trim(getString($node['key'], $node['newValue'], $level));
             } elseif ($node['status'] == 'delete') {
-                $acc[] = getSpace($level) . "- " . getString($node['key'], $node['oldValue'], $level);
+                $acc[] = getSpace($level) . "- " . trim(getString($node['key'], $node['oldValue'], $level));
             } elseif ($node['status'] == 'unchanged') {
-                $acc[] = getSpace($level) . "  " . getString($node['key'], $node['oldValue'], $level);
+                $acc[] = getSpace($level) . "  " . trim(getString($node['key'], $node['oldValue'], $level));
             } else {
-                $acc[] = getSpace($level) . "- " . getString($node['key'], $node['oldValue'], $level);
-                $acc[] = getSpace($level) . "+ " . getString($node['key'], $node['newValue'], $level);
+                $acc[] = getSpace($level) . "- " . trim(getString($node['key'], $node['oldValue'], $level));
+                $acc[] = getSpace($level) . "+ " . trim(getString($node['key'], $node['newValue'], $level));
             }
         } else {
             switch ($node['status']) {
@@ -70,6 +70,7 @@ function renderPretty($tree, $level = 0)
         }
         return $acc;
     }, []);
+    
     return implode("\n", $result);
 }
 function getString($keyNode, $data, $level)

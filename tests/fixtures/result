@@ -24,6 +24,10 @@
         [
             banana
         ]
+        {
+            know: yes
+            mind: no
+        }
     ]
   + verbose: true
   + group: {

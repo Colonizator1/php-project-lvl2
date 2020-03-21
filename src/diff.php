@@ -37,12 +37,14 @@ function getDiff($firstFilePath, $secondFilePath, $options = [])
 
     $dataWithAction = diffTree($firstValues, $secondValues);
 
-    switch ($options['--format']) {
+    switch ($options['--format'] ?? $options) {
         case 'plain':
             $result = renderPlain($dataWithAction);
+            $result = "{\n" . $result . "\n}\n";
             break;
         default:
             $result = renderPretty($dataWithAction);
+            $result = "{\n" . $result . "\n}\n";
             break;
     }
     
@@ -51,8 +53,6 @@ function getDiff($firstFilePath, $secondFilePath, $options = [])
 
     //print_r("\nFirst config\n");
     print_r($dataWithAction);
-
-    $result = "{\n" . $result . "\n}\n";
     if ($options) {
         print_r($result);
     }
