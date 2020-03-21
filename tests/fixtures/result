@@ -9,8 +9,8 @@
       + protocol: https
       - bool: true
       + some: value
-  }
-  - lang: {
+    }
+    lang: {
         name: EN
         string: english
     }

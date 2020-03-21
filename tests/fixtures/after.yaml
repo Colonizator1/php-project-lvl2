@@ -21,3 +21,7 @@ fruits:
   - "orange"
   -
     - "banana"
+
+lang:
+  name: "EN"
+  string: "english"
