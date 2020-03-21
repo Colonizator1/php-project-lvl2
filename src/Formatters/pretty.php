@@ -40,14 +40,14 @@ function renderPretty($tree, $level = 0)
     $result = array_reduce($tree, function ($acc, $node) use ($level) {
         if (!$node['children']) {
             if ($node['status'] == 'add') {
-                $acc[] = getSpace($level) . "+ {$node['key']}: " . getStr($node['newValue'], $level);
+                $acc[] = getSpace($level) . "+ " . getString($node['key'], $node['newValue'], $level);
             } elseif ($node['status'] == 'delete') {
-                $acc[] = getSpace($level) . "- {$node['key']}: " . getStr($node['oldValue'], $level);
+                $acc[] = getSpace($level) . "- " . getString($node['key'], $node['oldValue'], $level);
             } elseif ($node['status'] == 'unchanged') {
-                $acc[] = getSpace($level) . "  {$node['key']}: " . getStr($node['oldValue'], $level);
+                $acc[] = getSpace($level) . "  " . getString($node['key'], $node['oldValue'], $level);
             } else {
-                $acc[] = getSpace($level) . "- {$node['key']}: " . getStr($node['oldValue'], $level);
-                $acc[] = getSpace($level) . "+ {$node['key']}: " . getStr($node['newValue'], $level);
+                $acc[] = getSpace($level) . "- " . getString($node['key'], $node['oldValue'], $level);
+                $acc[] = getSpace($level) . "+ " . getString($node['key'], $node['newValue'], $level);
             }
         } else {
             switch ($node['status']) {
@@ -72,34 +72,30 @@ function renderPretty($tree, $level = 0)
     }, []);
     return implode("\n", $result);
 }
-
-function getStrFromNode($collection, $level = 0)
+function getString($keyNode, $data, $level)
 {
-    $nodeData = [];
-
-    if (is_array($collection)) {
-        $openBreacket = '[';
-        $closeBreacket = ']';
-        $nodeData[] = getSpace($level) . "$openBreacket";
-        foreach ($collection as $value) {
-            $nodeData[] = is_array($value) || is_object($value)
-            ? getSpace($level) . "  " . getStrFromNode($value, $level + 1)
-            : getSpace($level + 1) . "  " . getStr($value);
+    $keyStr = $keyNode ? "$keyNode: " : '';
+    $result = [];
+    if (is_array($data)) {
+        $result[] = getSpace($level) . "{$keyStr}[";
+        foreach ($data as $value) {
+            $result[] = is_array($value) || is_object($value)
+            ? getSpace($level) . getString('', $value, $level + 1)
+            : getSpace($level + 1) . "  " . getString('', $value, $level + 1);
         }
-        $nodeData[] = getSpace($level) . "  $closeBreacket";
-    }
-    if (is_object($collection)) {
-        $openBreacket = '{';
-        $closeBreacket = '}';
-        $nodeData[] = "$openBreacket";
-        foreach ($collection as $key => $value) {
-            $nodeData[] = is_array($value) || is_object($value)
-            ? getSpace($level) . "  $key: " . getStrFromNode($value, $level + 1)
-            : getSpace($level + 1) . "  $key: " . getStr($value, $level);
+        $result[] = getSpace($level) . "  ]";
+    } elseif (is_object($data)) {
+        $result[] = getSpace($level) . "{$keyStr}{";
+        foreach ($data as $key => $value) {
+            $result[] = is_array($value) || is_object($value)
+            ? getSpace($level) . getString($key, $value, $level + 1)
+            : getSpace($level + 1) . "  " . getString($key, $value, $level + 1);
         }
-        $nodeData[] = getSpace($level) . "  $closeBreacket";
+        $result[] = getSpace($level) . "  }";
+    } else {
+        return "$keyStr" . getStr($data);
     }
-    return implode("\n", $nodeData);
+    return implode("\n", $result);
 }
 
 function getStr($value, $level = 0)
@@ -112,10 +108,10 @@ function getStr($value, $level = 0)
             return "null";
             break;
         case 'array':
-            return getStrFromNode($value, $level);
+            return getString('', $value, $level);
             break;
         case 'object':
-            return getStrFromNode($value, $level);
+            return getString('', $value, $level);
             break;
         default:
             return "$value";

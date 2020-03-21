@@ -22,7 +22,11 @@
         "orange",
         [
             "banana"
-        ]
+        ],
+        {
+            "know": "yes",
+            "mind": "no"
+        }
     ],
     "lang": {
         "name": "EN",

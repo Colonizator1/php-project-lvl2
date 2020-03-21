@@ -50,7 +50,7 @@ function getDiff($firstFilePath, $secondFilePath, $options = [])
     //$testStdfunc = Collection\flattenAll($testStd);
 
     //print_r("\nFirst config\n");
-    //print_r($dataWithAction);
+    print_r($dataWithAction);
 
     $result = "{\n" . $result . "\n}\n";
     if ($options) {
