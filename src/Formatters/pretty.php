@@ -43,11 +43,11 @@ function renderPretty($tree, $level = 0)
                 $acc[] = getSpace($level) . "+ " . trim(getString($node['key'], $node['newValue'], $level));
             } elseif ($node['status'] == 'delete') {
                 $acc[] = getSpace($level) . "- " . trim(getString($node['key'], $node['oldValue'], $level));
-            } elseif ($node['status'] == 'unchanged') {
-                $acc[] = getSpace($level) . "  " . trim(getString($node['key'], $node['oldValue'], $level));
-            } else {
+            } elseif ($node['status'] == 'changed') {
                 $acc[] = getSpace($level) . "- " . trim(getString($node['key'], $node['oldValue'], $level));
                 $acc[] = getSpace($level) . "+ " . trim(getString($node['key'], $node['newValue'], $level));
+            } else {
+                $acc[] = getSpace($level) . "  " . trim(getString($node['key'], $node['oldValue'], $level));
             }
         } else {
             switch ($node['status']) {

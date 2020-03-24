@@ -5,7 +5,11 @@
     "options": {
         "type": "get",
         "protocol": "https",
-        "some": "value"
+        "some": {
+            "one": "letter",
+            "two": null,
+            "three": "song"
+        }
     },
     "group": {
         "first": {

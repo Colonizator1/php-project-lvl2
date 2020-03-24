@@ -6,6 +6,7 @@ use Tightenco\Collect;
 use Symfony\Component\Yaml\Yaml;
 
 use function Differ\Formatters\pretty\renderPretty;
+use function Differ\Formatters\plain\renderPlain;
 
 function startDiff()
 {
@@ -36,11 +37,11 @@ function getDiff($firstFilePath, $secondFilePath, $options = [])
     //$unionValues = array_replace_recursive($firstValues, $secondValues);
 
     $dataWithAction = diffTree($firstValues, $secondValues);
+    $format = is_array($options) ? $options['--format'] : $options;
 
-    switch ($options['--format'] ?? $options) {
+    switch ($format) {
         case 'plain':
             $result = renderPlain($dataWithAction);
-            $result = "{\n" . $result . "\n}\n";
             break;
         default:
             $result = renderPretty($dataWithAction);
@@ -49,10 +50,11 @@ function getDiff($firstFilePath, $secondFilePath, $options = [])
     }
     
     
+    
     //$testStdfunc = Collection\flattenAll($testStd);
 
     //print_r("\nFirst config\n");
-    print_r($dataWithAction);
+    //print_r($dataWithAction);
     if ($options) {
         print_r($result);
     }
@@ -133,5 +135,5 @@ function diffTree($firstNode, $secondNode)
 }
 
 
-//print_r(diffTree(parse("../tests/fixtures/before.json"), parse("../tests/fixtures/after.json")));
+//print_r(diffTree(parse("../tests/fixtures/before.json"), parse("../tests/fixtures/after.json"), "plain"));
 //getdiff('../tests/fixtures/before.json', '../tests/fixtures/after.json');

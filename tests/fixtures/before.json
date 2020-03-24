@@ -5,7 +5,10 @@
     "options": {
         "type": "get",
         "protocol": "http",
-        "bool": true
+        "bool": true,
+        "some": {
+            "two": "detective"
+        }
     },
     "lang": {
         "name": "EN",
