@@ -5,7 +5,10 @@ host: "hexlet.io"
 options:
   type: "get"
   protocol: "https"
-  some: "value"
+  some:
+    one: "letter"
+    two: null
+    three: "song"
 
 group:
   first:
@@ -21,6 +24,8 @@ fruits:
   - "orange"
   -
     - "banana"
+  - know: "yes"
+    mind: "no"
 
 lang:
   name: "EN"

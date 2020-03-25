@@ -8,6 +8,17 @@ use Funct\Collection;
 
 function renderPretty($tree, $level = 0)
 {
+    $map = function ($tree, $closure, $level = 0) use (&$map) {
+        return Collection\flattenAll(array_map(function ($node) use (&$closure, &$map, $level) {
+            $children = $node['children'] ?? null;
+            $level = $level ? $level + 1 : $level;
+            if (!$children) {
+                return $closure($node, $level);
+            } else {
+                return $map($node['children'], $closure, $level);
+            }
+        }, $tree));
+    };
     /*
     $map = function ($tree, $closure, $level = 1) use (&$map, $space) {
         $result = array_map(function ($node) use (&$map, $closure, $space, $level) {

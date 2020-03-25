@@ -1,0 +1,10 @@
+Property 'timeout' was changed. From '50' to '20'
+Property 'proxy' was removed
+Property 'options.protocol' was changed. From 'http' to 'https'
+Property 'options.bool' was removed
+Property 'options.some.two' was changed. From 'detective' to 'null'
+Property 'options.some.one' was added  with value: 'letter'
+Property 'options.some.three' was added  with value: 'song'
+Property 'fruits' was changed. From 'complex value' to 'complex value'
+Property 'verbose' was added  with value: 'true'
+Property 'group' was added  with value: 'complex value'

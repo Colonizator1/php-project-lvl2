@@ -26,10 +26,11 @@ DOC;
     $result = \Docopt::handle($doc, array('version' => '1.0', 'firstFile', 'secondFile'));
     $firstFile = $result->args['<firstFile>'];
     $secondFile = $result->args['<secondFile>'];
-    getDiff($firstFile, $secondFile, $result->args);
+    $format = $result->args['--format'];
+    print_r(getDiff($firstFile, $secondFile, $format));
 }
 
-function getDiff($firstFilePath, $secondFilePath, $options = [])
+function getDiff($firstFilePath, $secondFilePath, $format = "pretty")
 {
     $firstValues = parse($firstFilePath);
     $secondValues = parse($secondFilePath);
@@ -37,7 +38,6 @@ function getDiff($firstFilePath, $secondFilePath, $options = [])
     //$unionValues = array_replace_recursive($firstValues, $secondValues);
 
     $dataWithAction = diffTree($firstValues, $secondValues);
-    $format = is_array($options) ? $options['--format'] : $options;
 
     switch ($format) {
         case 'plain':
@@ -55,9 +55,6 @@ function getDiff($firstFilePath, $secondFilePath, $options = [])
 
     //print_r("\nFirst config\n");
     //print_r($dataWithAction);
-    if ($options) {
-        print_r($result);
-    }
     return $result;
 }
 function parse($path)

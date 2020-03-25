@@ -6,6 +6,8 @@ options:
   type: "get"
   protocol: "http"
   bool: true
+  some:
+    two: detective
 
 lang:
   name: "EN"

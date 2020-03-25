@@ -8,9 +8,8 @@ use Funct\Collection;
 
 use function Differ\Formatters\pretty\getStr;
 
-function renderPlain($tree, $key = '')
+function renderPlain($tree)
 {
-    
     $map = function ($tree, $closure, $key = '') use (&$map) {
         return Collection\flattenAll(array_map(function ($node) use (&$closure, &$map, $key) {
             $children = $node['children'] ?? null;
@@ -30,11 +29,11 @@ function renderPlain($tree, $key = '')
         'complex value' : getStr($node['oldValue']);
 
         if ($node['status'] == 'add') {
-            return "Property '{$key}' was added  with value: '{$newValue}'";
+            return "Property '{$key}' was added  with value: '{$newValue}'\n";
         } elseif ($node['status'] == 'delete') {
-            return "Property '{$key}' was removed";
+            return "Property '{$key}' was removed\n";
         } elseif ($node['status'] == 'changed') {
-            return "Property '{$key}' was changed. From '{$oldValue}' to '{$newValue}'";
+            return "Property '{$key}' was changed. From '{$oldValue}' to '{$newValue}'\n";
         }
         return null;
     });
@@ -43,5 +42,5 @@ function renderPlain($tree, $key = '')
         return $value;
     });
     
-    return implode("\n", $filtered);
+    return implode("", $filtered);
 }

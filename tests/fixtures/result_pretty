@@ -8,7 +8,12 @@
       - protocol: http
       + protocol: https
       - bool: true
-      + some: value
+        some: {
+          - two: detective
+          + two: null
+          + one: letter
+          + three: song
+        }
     }
     lang: {
         name: EN
