@@ -6,12 +6,12 @@ use Tightenco\Collect;
 use Symfony\Component\Yaml\Yaml;
 use Funct\Collection;
 
-use function Differ\Formatters\pretty\getStr;
+use function Differ\Formatters\pretty\toString;
 
 function renderPlain($tree)
 {
     $map = function ($tree, $closure, $key = '') use (&$map) {
-        return Collection\flattenAll(array_map(function ($node) use (&$closure, &$map, $key) {
+        return $tree->map(function ($node) use (&$closure, &$map, $key) {
             $children = $node['children'] ?? null;
             $key = $key ? "$key.{$node['key']}" : $node['key'];
             if (!$children) {
@@ -19,28 +19,26 @@ function renderPlain($tree)
             } else {
                 return $map($node['children'], $closure, $key);
             }
-        }, $tree));
+        })->flatten();
     };
-    $result = $map($tree, function ($key, $node) {
+    $mapped = $map($tree, function ($key, $node) {
         $newValue = is_array($node['newValue']) || is_object($node['newValue']) ?
-        'complex value' : getStr($node['newValue']);
+        'complex value' : toString($node['newValue']);
 
         $oldValue = is_array($node['oldValue']) || is_object($node['oldValue']) ?
-        'complex value' : getStr($node['oldValue']);
+        'complex value' : toString($node['oldValue']);
 
-        if ($node['status'] == 'add') {
+        if ($node['status'] == 'added') {
             return "Property '{$key}' was added  with value: '{$newValue}'\n";
-        } elseif ($node['status'] == 'delete') {
+        } elseif ($node['status'] == 'deleted') {
             return "Property '{$key}' was removed\n";
         } elseif ($node['status'] == 'changed') {
             return "Property '{$key}' was changed. From '{$oldValue}' to '{$newValue}'\n";
         }
         return null;
     });
-
-    $filtered = array_filter($result, function ($value) {
+    $filtered = $mapped->filter(function ($value) {
         return $value;
     });
-    
-    return implode("", $filtered);
+    return $filtered->implode("");
 }

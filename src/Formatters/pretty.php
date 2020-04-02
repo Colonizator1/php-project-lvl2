@@ -6,111 +6,64 @@ use Tightenco\Collect;
 use Symfony\Component\Yaml\Yaml;
 use Funct\Collection;
 
-function renderPretty($tree, $level = 0)
+function renderPretty($tree)
 {
-    $map = function ($tree, $closure, $level = 0) use (&$map) {
-        return Collection\flattenAll(array_map(function ($node) use (&$closure, &$map, $level) {
-            $children = $node['children'] ?? null;
-            $level = $level ? $level + 1 : $level;
-            if (!$children) {
-                return $closure($node, $level);
+    $render = function ($tree, $level = 0) use (&$render) {
+        $result = $tree->reduce(function ($acc, $node) use ($level, &$render) {
+            if (!$node['children']) {
+                if ($node['status'] == 'added') {
+                    $acc[] = getSpace($level) . "+ " . getString($node['key'], $node['newValue'], $level);
+                } elseif ($node['status'] == 'deleted') {
+                    $acc[] = getSpace($level) . "- " . getString($node['key'], $node['oldValue'], $level);
+                } elseif ($node['status'] == 'changed') {
+                    $acc[] = getSpace($level) . "- " . getString($node['key'], $node['oldValue'], $level);
+                    $acc[] = getSpace($level) . "+ " . getString($node['key'], $node['newValue'], $level);
+                } else {
+                    $acc[] = getSpace($level) . "  " . getString($node['key'], $node['oldValue'], $level);
+                }
             } else {
-                return $map($node['children'], $closure, $level);
+                $acc[] = getSpace($level) . "  {$node['key']}: {";
+                $acc[] = implode("\n", $render($node['children'], $level + 1));
+                $acc[] = getSpace($level) . "  }";
             }
-        }, $tree));
+            return $acc;
+        }, []);
+        return $result;
     };
-    /*
-    $map = function ($tree, $closure, $level = 1) use (&$map, $space) {
-        $result = array_map(function ($node) use (&$map, $closure, $space, $level) {
-            $children = $node['children'] ?? null;
-            if (!$children) {
-                return $closure($node);
-            } else {
-                return ["$space  {$node['key']}: {", $map($children, $closure, ++$level), "$space  }"];
-                //return array_merge($node, ['children' => $map($children, $closure)]);
-            }
-        }, $tree);
-        //return $result;
-        return Collection\flattenAll($result);
-    };
-    $result = $map($tree, function ($node) use ($space) {
-        if ($node['status'] == 'add') {
-            $acc = "{$space}+ {$node['key']}: " . getStr($node['newValue'], 1);
-        } elseif ($node['status'] == 'delete') {
-            $acc = "{$space}- {$node['key']}: " . getStr($node['oldValue'], 1);
-        } elseif ($node['status'] == 'unchanged') {
-            $acc = "{$space}  {$node['key']}: " . getStr($node['oldValue'], 1);
-        } else {
-            $acc = "{$space}- {$node['key']}: " . getStr($node['oldValue'], 1) .
-            "\n{$space}+ {$node['key']}: " . getStr($node['newValue'], 1);
-        }
-        return $acc;
-    });
-    print_r(implode("\n", $result));*/
-
-    $result = array_reduce($tree, function ($acc, $node) use ($level) {
-        if (!$node['children']) {
-            if ($node['status'] == 'add') {
-                $acc[] = getSpace($level) . "+ " . trim(getString($node['key'], $node['newValue'], $level));
-            } elseif ($node['status'] == 'delete') {
-                $acc[] = getSpace($level) . "- " . trim(getString($node['key'], $node['oldValue'], $level));
-            } elseif ($node['status'] == 'changed') {
-                $acc[] = getSpace($level) . "- " . trim(getString($node['key'], $node['oldValue'], $level));
-                $acc[] = getSpace($level) . "+ " . trim(getString($node['key'], $node['newValue'], $level));
-            } else {
-                $acc[] = getSpace($level) . "  " . trim(getString($node['key'], $node['oldValue'], $level));
-            }
-        } else {
-            switch ($node['status']) {
-                case 'add':
-                    $sign = '+';
-                    break;
-                case 'delete':
-                    $sign = '-';
-                    break;
-                case 'unchanged':
-                    $sign = ' ';
-                    break;
-                case 'changed':
-                    $sign = ' ';
-                    break;
-            }
-            $acc[] = getSpace($level) . "$sign {$node['key']}: {";
-            $acc[] = renderPretty($node['children'], $level + 1);
-            $acc[] = getSpace($level) . "  }";
-        }
-        return $acc;
-    }, []);
-    
-    return implode("\n", $result);
+    return "{\n" . implode("\n", $render($tree)) . "\n}\n";
 }
+
 function getString($keyNode, $data, $level)
 {
-    $keyStr = $keyNode ? "$keyNode: " : '';
+    if (isSimpleValue($data)) {
+        $keyStr = $keyNode ? "$keyNode: " : '';
+        return "$keyStr" . toString($data);
+    }
     $result = [];
     if (is_array($data)) {
-        $result[] = getSpace($level) . "{$keyStr}[";
-        foreach ($data as $value) {
-            $result[] = is_array($value) || is_object($value)
-            ? getSpace($level) . getString('', $value, $level + 1)
-            : getSpace($level + 1) . "  " . getString('', $value, $level + 1);
-        }
+        $coolection = collect($data);
+        $keyStr = $keyNode ? "$keyNode: [" : getSpace($level) . '  [';
+        $result[] = "{$keyStr}";
+        $result[] = $coolection->map(function ($item) use (&$level) {
+            return isSimpleValue($item) ? getSpace($level + 1) . "  " . toString($item) : getString('', $item, $level + 1);
+        })->implode("\n");
         $result[] = getSpace($level) . "  ]";
-    } elseif (is_object($data)) {
-        $result[] = getSpace($level) . "{$keyStr}{";
-        foreach ($data as $key => $value) {
-            $result[] = is_array($value) || is_object($value)
-            ? getSpace($level) . getString($key, $value, $level + 1)
-            : getSpace($level + 1) . "  " . getString($key, $value, $level + 1);
-        }
+    }
+
+    if (is_object($data)) {
+        $coolection = collect(get_object_vars($data));
+        $keyStr = $keyNode ? "$keyNode: {" : getSpace($level) . '  {';
+        $result[] = "{$keyStr}";
+        $result[] = $coolection->map(function ($item, $key) use (&$level) {
+            $space = getSpace($level + 1) . "  ";
+            return isSimpleValue($item) ? "{$space}{$key}: " . toString($item) : $space . getString($key, $item, $level + 1);
+        })->implode("\n");
         $result[] = getSpace($level) . "  }";
-    } else {
-        return "$keyStr" . getStr($data);
     }
     return implode("\n", $result);
 }
 
-function getStr($value, $level = 0)
+function toString($value, $level = 0)
 {
     switch (gettype($value)) {
         case 'boolean':
@@ -120,13 +73,33 @@ function getStr($value, $level = 0)
             return "null";
             break;
         case 'array':
-            return getString('', $value, $level);
+            return 'array';
             break;
         case 'object':
-            return getString('', $value, $level);
+            return 'object';
             break;
         default:
             return "$value";
+            break;
+    }
+}
+function isSimpleValue($value)
+{
+    switch (gettype($value)) {
+        case 'boolean':
+            return true;
+            break;
+        case 'NULL':
+            return true;
+            break;
+        case 'array':
+            return false;
+            break;
+        case 'object':
+            return false;
+            break;
+        default:
+            return true;
             break;
     }
 }

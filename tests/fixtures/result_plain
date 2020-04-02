@@ -1,3 +1,4 @@
+Property 'children' was removed
 Property 'timeout' was changed. From '50' to '20'
 Property 'proxy' was removed
 Property 'options.protocol' was changed. From 'http' to 'https'

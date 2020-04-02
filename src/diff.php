@@ -6,6 +6,7 @@ use Tightenco\Collect;
 use Symfony\Component\Yaml\Yaml;
 
 use function Differ\Formatters\pretty\renderPretty;
+use function Differ\Formatters\pretty\renderPretty2;
 use function Differ\Formatters\plain\renderPlain;
 
 function startDiff()
@@ -37,15 +38,15 @@ function getDiff($firstFilePath, $secondFilePath, $format = "pretty")
 
     //$unionValues = array_replace_recursive($firstValues, $secondValues);
 
-    $dataWithAction = diffTree($firstValues, $secondValues);
+   // $dataWithAction = diffTree($firstValues, $secondValues);
+    $objTree = diffObjTree($firstValues, $secondValues);
 
     switch ($format) {
         case 'plain':
-            $result = renderPlain($dataWithAction);
+            $result = renderPlain($objTree);
             break;
         default:
-            $result = renderPretty($dataWithAction);
-            $result = "{\n" . $result . "\n}\n";
+            $result = renderPretty($objTree);
             break;
     }
     
@@ -54,7 +55,7 @@ function getDiff($firstFilePath, $secondFilePath, $format = "pretty")
     //$testStdfunc = Collection\flattenAll($testStd);
 
     //print_r("\nFirst config\n");
-    //print_r($dataWithAction);
+    //print_r($objTree);
     return $result;
 }
 function parse($path)
@@ -75,15 +76,6 @@ function parse($path)
 
 function diffTree($firstNode, $secondNode)
 {
-    /*
-    $collectionFirst = collect($firstNode);
-    $collectionSecond = collect($secondNode);
-
-    $deleteKeys = $collectionFirst->diffKeys($collectionSecond);
-    $addKeys = $collectionSecond->diffKeys($collectionFirst);
-
-    $merge = $collectionFirst->mergeRecursive($collectionSecond);
-*/
     $tree = [];
     foreach ($firstNode as $key => $value) {
         if (!property_exists($secondNode, $key)) {
@@ -119,18 +111,66 @@ function diffTree($firstNode, $secondNode)
             ];
         }
     }
-    return $tree;
+    
+    //return $merge;
     //$diffFirst = diffTree($firstNode, $secondNode);
     //print_r("\nFirst collect\n");
     //print_r($firstNode);
     //print_r("\second collect\n");
     //print_r($secondNode);
     //print_r("\Diff\n");
-    //print_r($diffFirst);
+    //print_r($merge);
     //print_r("\With Action\n");
     //print_r($dataWithAction);
+
+    return $tree;
 }
 
+function diffObjTree($firstNode, $secondNode)
+{
+    $collectionFirst = collect($firstNode);
+    $collectionSecond = collect($secondNode);
+    $mapped = function ($firstTree, $secondTree) use (&$mapped) {
+        $firstMapped = $firstTree->map(function ($item, $key) use ($secondTree, &$mapped) {
+            if ($secondTree->has($key)) {
+                $secondValue = $secondTree->get($key);
+                $status = $item == $secondValue ? "unchanged" : "changed";
+            } else {
+                $status = "deleted";
+                $secondValue = null;
+            }
+            $oldValue = $item;
+            $newValue = $secondValue;
+            return is_object($item) && is_object($secondValue) ? collect([
+                'status' => $status,
+                'key' => $key,
+                'oldValue' => $oldValue,
+                'newValue' => $newValue,
+                'children' => $mapped(collect($item), collect($secondValue)),
+            ]) :
+            collect([
+                'status' => $status,
+                'key' => $key,
+                'oldValue' => $oldValue,
+                'newValue' => $newValue,
+                'children' => null
+            ]);
+        });
 
+        $addedKeys = $secondTree->diffKeys($firstTree)
+        ->map(function ($item, $key) {
+            return collect([
+                'status' => 'added',
+                'key' => $key,
+                'oldValue' => null,
+                'newValue' => $item,
+                'children' => null
+            ]);
+        });
+        $result = $addedKeys->isNotEmpty() ? $firstMapped->merge($addedKeys) : $firstMapped;
+        return $result;
+    };
+    return collect($mapped($collectionFirst, $collectionSecond));
+}
 //print_r(diffTree(parse("../tests/fixtures/before.json"), parse("../tests/fixtures/after.json"), "plain"));
 //getdiff('../tests/fixtures/before.json', '../tests/fixtures/after.json');
