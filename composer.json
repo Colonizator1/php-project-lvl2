@@ -16,7 +16,8 @@
         "files": [
             "src/diff.php",
             "src/Formatters/plain.php",
-            "src/Formatters/pretty.php"
+            "src/Formatters/pretty.php",
+            "src/Formatters/json.php"
         ]
     },
     "scripts": {
@@ -24,7 +25,6 @@
         "phpunit": "phpunit"
     },    
     "require": {
-        "funct/funct": "^1.5",
         "docopt/docopt": "^1.0",
         "symfony/yaml": "^5.0",
         "tightenco/collect": "^7.0"

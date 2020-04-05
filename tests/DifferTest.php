@@ -12,6 +12,7 @@ class DifferTest extends TestCase
     {
         $expected_pretty = file_get_contents("tests/fixtures/result_pretty");
         $expected_plain = file_get_contents("tests/fixtures/result_plain");
+        $expected_json = file_get_contents("tests/fixtures/result_json");
 
         $jsonOne = "tests/fixtures/before.json";
         $jsonTwo = "tests/fixtures/after.json";
@@ -24,5 +25,8 @@ class DifferTest extends TestCase
 
         $this->assertEquals($expected_plain, getDiff($jsonOne, $jsonTwo, "plain"));
         $this->assertEquals($expected_plain, getDiff($yamlOne, $yamlTwo, "plain"));
+
+        $this->assertEquals($expected_json, getDiff($jsonOne, $jsonTwo, "json"));
+        $this->assertEquals($expected_json, getDiff($yamlOne, $yamlTwo, "json"));
     }
 }

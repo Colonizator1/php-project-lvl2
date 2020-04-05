@@ -3,8 +3,6 @@
 namespace Differ\Formatters\pretty;
 
 use Tightenco\Collect;
-use Symfony\Component\Yaml\Yaml;
-use Funct\Collection;
 
 function renderPretty($tree)
 {
@@ -45,7 +43,9 @@ function getString($keyNode, $data, $level)
         $keyStr = $keyNode ? "$keyNode: [" : getSpace($level) . '  [';
         $result[] = "{$keyStr}";
         $result[] = $coolection->map(function ($item) use (&$level) {
-            return isSimpleValue($item) ? getSpace($level + 1) . "  " . toString($item) : getString('', $item, $level + 1);
+            return isSimpleValue($item) ?
+            getSpace($level + 1) . "  " . toString($item) :
+            getString('', $item, $level + 1);
         })->implode("\n");
         $result[] = getSpace($level) . "  ]";
     }
@@ -56,7 +56,9 @@ function getString($keyNode, $data, $level)
         $result[] = "{$keyStr}";
         $result[] = $coolection->map(function ($item, $key) use (&$level) {
             $space = getSpace($level + 1) . "  ";
-            return isSimpleValue($item) ? "{$space}{$key}: " . toString($item) : $space . getString($key, $item, $level + 1);
+            return isSimpleValue($item) ?
+            "{$space}{$key}: " . toString($item) :
+            $space . getString($key, $item, $level + 1);
         })->implode("\n");
         $result[] = getSpace($level) . "  }";
     }

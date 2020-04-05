@@ -6,8 +6,8 @@ use Tightenco\Collect;
 use Symfony\Component\Yaml\Yaml;
 
 use function Differ\Formatters\pretty\renderPretty;
-use function Differ\Formatters\pretty\renderPretty2;
 use function Differ\Formatters\plain\renderPlain;
+use function Differ\Formatters\json\renderJson;
 
 function startDiff()
 {
@@ -35,122 +35,71 @@ function getDiff($firstFilePath, $secondFilePath, $format = "pretty")
 {
     $firstValues = parse($firstFilePath);
     $secondValues = parse($secondFilePath);
-
-    //$unionValues = array_replace_recursive($firstValues, $secondValues);
-
-   // $dataWithAction = diffTree($firstValues, $secondValues);
-    $objTree = diffObjTree($firstValues, $secondValues);
+    $objTree = getDiffTree($firstValues, $secondValues);
 
     switch ($format) {
         case 'plain':
             $result = renderPlain($objTree);
             break;
+        case 'json':
+            $result = renderJson($objTree);
+            break;
         default:
             $result = renderPretty($objTree);
             break;
     }
-    
-    
-    
-    //$testStdfunc = Collection\flattenAll($testStd);
-
-    //print_r("\nFirst config\n");
-    //print_r($objTree);
     return $result;
 }
+
 function parse($path)
 {
     try {
-        $path_parts = pathinfo($path);
+        if (!file_exists($path)) {
+            throw new InvalidArgumentException("File by path: {$path} doesn't exist");
+        }
         $file = file_get_contents($path);
+        if ($file === false) {
+            throw new \Exception("Can't read file by: {$path}");
+        }
+        $path_parts = pathinfo($path);
+        
         if ($path_parts['extension'] == 'json') {
             return json_decode($file);
         } elseif ($path_parts['extension'] == 'yaml') {
             return Yaml::parse($file, Yaml::PARSE_OBJECT_FOR_MAP);
         }
-        throw new \Exception("File doesn't have json or yaml extention");
+            throw new \Exception("Wrong file extention. Got: {$path_parts['extension']}. Need json or yaml");
     } catch (\Exception $e) {
         echo $e->getMessage(), "\n";
+        exit();
     }
 }
 
-function diffTree($firstNode, $secondNode)
-{
-    $tree = [];
-    foreach ($firstNode as $key => $value) {
-        if (!property_exists($secondNode, $key)) {
-            $status = "delete";
-            $secondValue = null;
-        } else {
-            $secondValue = $secondNode->$key;
-            if ($value == $secondValue) {
-                $status = "unchanged";
-            } else {
-                $status = "changed";
-            }
-        }
-        $oldValue = $value;
-        $newValue = $secondValue;
-        $children = is_object($value) && is_object($secondValue) ? diffTree($value, $secondValue) : false;
-        $tree[] = [
-            'status' => $status,
-            'key' => $key,
-            'oldValue' => $oldValue,
-            'newValue' => $newValue,
-            'children' => $children
-        ];
-    }
-    foreach ($secondNode as $key => $value) {
-        if (!property_exists($firstNode, $key)) {
-            $tree[] = [
-                'status' => "add",
-                'key' => $key,
-                'oldValue' => null,
-                'newValue' => $value,
-                'children' => false
-            ];
-        }
-    }
-    
-    //return $merge;
-    //$diffFirst = diffTree($firstNode, $secondNode);
-    //print_r("\nFirst collect\n");
-    //print_r($firstNode);
-    //print_r("\second collect\n");
-    //print_r($secondNode);
-    //print_r("\Diff\n");
-    //print_r($merge);
-    //print_r("\With Action\n");
-    //print_r($dataWithAction);
-
-    return $tree;
-}
-
-function diffObjTree($firstNode, $secondNode)
+function getDiffTree($firstNode, $secondNode)
 {
     $collectionFirst = collect($firstNode);
     $collectionSecond = collect($secondNode);
     $mapped = function ($firstTree, $secondTree) use (&$mapped) {
-        $firstMapped = $firstTree->map(function ($item, $key) use ($secondTree, &$mapped) {
-            if ($secondTree->has($key)) {
-                $secondValue = $secondTree->get($key);
-                $status = $item == $secondValue ? "unchanged" : "changed";
+        $firstMapped = $firstTree->map(function ($firstValue, $firstKey) use ($secondTree, &$mapped) {
+            if ($secondTree->has($firstKey)) {
+                $secondValue = $secondTree->get($firstKey);
+                $status = $firstValue == $secondValue ? "unchanged" : "changed";
             } else {
                 $status = "deleted";
                 $secondValue = null;
             }
-            $oldValue = $item;
+            $oldValue = $firstValue;
             $newValue = $secondValue;
-            return is_object($item) && is_object($secondValue) ? collect([
+            return is_object($firstValue) && is_object($secondValue) ? collect([
                 'status' => $status,
-                'key' => $key,
+                'key' => $firstKey,
                 'oldValue' => $oldValue,
                 'newValue' => $newValue,
-                'children' => $mapped(collect($item), collect($secondValue)),
+                'children' => $mapped(collect($firstValue), collect($secondValue)),
             ]) :
             collect([
                 'status' => $status,
-                'key' => $key,
+                'key' => $firstKey,
                 'oldValue' => $oldValue,
                 'newValue' => $newValue,
                 'children' => null
@@ -172,5 +121,3 @@ function diffObjTree($firstNode, $secondNode)
     };
     return collect($mapped($collectionFirst, $collectionSecond));
 }
-//print_r(diffTree(parse("../tests/fixtures/before.json"), parse("../tests/fixtures/after.json"), "plain"));
-//getdiff('../tests/fixtures/before.json', '../tests/fixtures/after.json');

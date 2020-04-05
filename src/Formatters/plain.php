@@ -3,8 +3,6 @@
 namespace Differ\Formatters\plain;
 
 use Tightenco\Collect;
-use Symfony\Component\Yaml\Yaml;
-use Funct\Collection;
 
 use function Differ\Formatters\pretty\toString;
 
