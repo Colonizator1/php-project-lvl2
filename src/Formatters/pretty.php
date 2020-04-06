@@ -34,7 +34,9 @@ function renderPretty($tree)
 function getString($value, $keyValue = '', $level = 0)
 {
     if (isSimpleValue($value)) {
-        return $keyValue ? "$keyValue: " . toString($value) : toString($value);
+        return $keyValue ?
+        "$keyValue: " . simpleValueToString($value) :
+        simpleValueToString($value);
     }
 
     if (is_array($value)) {
@@ -58,7 +60,7 @@ function getString($value, $keyValue = '', $level = 0)
     return implode("\n", $result);
 }
 
-function toString($value)
+function simpleValueToString($value)
 {
     switch (gettype($value)) {
         case 'boolean':
@@ -67,12 +69,6 @@ function toString($value)
         case 'NULL':
             return "null";
             break;
-        case 'array':
-            return 'array';
-            break;
-        case 'object':
-            return 'object';
-            break;
         default:
             return "$value";
             break;
@@ -80,23 +76,8 @@ function toString($value)
 }
 function isSimpleValue($value)
 {
-    switch (gettype($value)) {
-        case 'boolean':
-            return true;
-            break;
-        case 'NULL':
-            return true;
-            break;
-        case 'array':
-            return false;
-            break;
-        case 'object':
-            return false;
-            break;
-        default:
-            return true;
-            break;
-    }
+    $type = gettype($value);
+    return $type == 'array' || $type == 'object' ? false : true;
 }
 
 function getSpace(int $level)
