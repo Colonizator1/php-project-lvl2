@@ -22,7 +22,7 @@ Usage:
 Options:
     -h --help                     Show this screen
     -v --version                  Show version
-    --format <fmt>                Report format [default: pretty]
+    --format <fmt>                Report format: pretty, plain, json [default: pretty]
 DOC;
     $result = \Docopt::handle($doc, array('version' => '1.0', 'firstFile', 'secondFile'));
     $firstFile = $result->args['<firstFile>'];

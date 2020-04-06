@@ -13,6 +13,8 @@ composer global require colonizator/getdiff
 
 ## Usage
 ```bash
-getdiff /path/to/file/before.json /path/to/file/after.json
+getdiff --format pretty /path/to/file/before.json /path/to/file/after.json
 ```
-[![asciicast](https://asciinema.org/a/9eBOQbqXPmiWDzCJZ2I3ILBoP.svg)](https://asciinema.org/a/9eBOQbqXPmiWDzCJZ2I3ILBoP)
+getdiff works with .json, .yaml types.
+--format options: pretty, plain, json
+[![asciicast](https://asciinema.org/a/fjLtL62f5ULtOJseGYAqDW9ju.svg)](https://asciinema.org/a/fjLtL62f5ULtOJseGYAqDW9ju)
