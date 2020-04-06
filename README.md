@@ -16,5 +16,7 @@ composer global require colonizator/getdiff
 getdiff --format pretty /path/to/file/before.json /path/to/file/after.json
 ```
 getdiff works with .json, .yaml types.
---format options: pretty, plain, json
+
+--format options: [default: pretty], plain, json
+
 [![asciicast](https://asciinema.org/a/fjLtL62f5ULtOJseGYAqDW9ju.svg)](https://asciinema.org/a/fjLtL62f5ULtOJseGYAqDW9ju)
