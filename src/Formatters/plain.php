@@ -35,8 +35,7 @@ function renderPlain($tree)
         }
         return null;
     });
-    $filtered = $mapped->filter(function ($value) {
+    return $mapped->filter(function ($value) {
         return $value;
-    });
-    return $filtered->implode("");
+    })->implode("");
 }

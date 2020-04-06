@@ -15,6 +15,7 @@
     "autoload": {
         "files": [
             "src/diff.php",
+            "src/parser.php",
             "src/Formatters/plain.php",
             "src/Formatters/pretty.php",
             "src/Formatters/json.php"
