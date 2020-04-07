@@ -1,6 +1,6 @@
 <?php
 
-namespace Differ\diff;
+namespace Differ;
 
 use Tightenco\Collect;
 
@@ -35,26 +35,24 @@ function getDiff($firstFilePath, $secondFilePath, $format = "pretty")
 {
     $firstValues = parse($firstFilePath);
     $secondValues = parse($secondFilePath);
-    $objTree = getDiffTree($firstValues, $secondValues);
+    $diffTree = getDiffTree($firstValues, $secondValues);
 
     switch ($format) {
         case 'plain':
-            $result = renderPlain($objTree);
+            $result = renderPlain($diffTree);
             break;
         case 'json':
-            $result = renderJson($objTree);
+            $result = renderJson($diffTree);
             break;
         default:
-            $result = renderPretty($objTree);
+            $result = renderPretty($diffTree);
             break;
     }
     return $result;
 }
 
-function getDiffTree($firstNode, $secondNode)
+function getDiffTree($firstData, $secondData)
 {
-    $collectionFirst = collect($firstNode);
-    $collectionSecond = collect($secondNode);
     $mapped = function ($firstTree, $secondTree) use (&$mapped) {
         $firstMapped = $firstTree->map(function ($firstValue, $firstKey) use ($secondTree, &$mapped) {
             if ($secondTree->has($firstKey)) {
@@ -81,7 +79,6 @@ function getDiffTree($firstNode, $secondNode)
                 'children' => null
             ]);
         });
-
         $addedKeys = $secondTree->diffKeys($firstTree)
         ->map(function ($item, $key) {
             return collect([
@@ -95,5 +92,7 @@ function getDiffTree($firstNode, $secondNode)
         $result = $addedKeys->isNotEmpty() ? $firstMapped->merge($addedKeys) : $firstMapped;
         return $result;
     };
+    $collectionFirst = collect($firstData);
+    $collectionSecond = collect($secondData);
     return collect($mapped($collectionFirst, $collectionSecond));
 }

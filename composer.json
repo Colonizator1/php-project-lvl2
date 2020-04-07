@@ -26,6 +26,7 @@
         "phpunit": "phpunit"
     },    
     "require": {
+        "php": ">7.2",
         "docopt/docopt": "^1.0",
         "symfony/yaml": "^5.0",
         "tightenco/collect": "^7.0"

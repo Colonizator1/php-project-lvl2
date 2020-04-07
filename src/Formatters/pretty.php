@@ -9,15 +9,17 @@ function renderPretty($tree)
     $render = function ($tree, $level = 0) use (&$render) {
         $result = $tree->reduce(function ($acc, $node) use ($level, &$render) {
             if (!$node['children']) {
+                $newValue = getPretty($node['newValue'], $node['key'], $level);
+                $oldValue = getPretty($node['oldValue'], $node['key'], $level);
                 if ($node['status'] == 'added') {
-                    $acc[] = getSpace($level) . "+ " . getString($node['newValue'], $node['key'], $level);
+                    $acc[] = getSpace($level) . "+ {$newValue}";
                 } elseif ($node['status'] == 'deleted') {
-                    $acc[] = getSpace($level) . "- " . getString($node['oldValue'], $node['key'], $level);
+                    $acc[] = getSpace($level) . "- {$oldValue}";
                 } elseif ($node['status'] == 'changed') {
-                    $acc[] = getSpace($level) . "- " . getString($node['oldValue'], $node['key'], $level);
-                    $acc[] = getSpace($level) . "+ " . getString($node['newValue'], $node['key'], $level);
+                    $acc[] = getSpace($level) . "- {$oldValue}";
+                    $acc[] = getSpace($level) . "+ {$newValue}";
                 } else {
-                    $acc[] = getSpace($level) . "  " . getString($node['oldValue'], $node['key'], $level);
+                    $acc[] = getSpace($level) . "  {$oldValue}";
                 }
             } else {
                 $acc[] = getSpace($level) . "  {$node['key']}: {";
@@ -31,7 +33,7 @@ function renderPretty($tree)
     return "{\n" . implode("\n", $render($tree)) . "\n}\n";
 }
 
-function getString($value, $keyValue = '', $level = 0)
+function getPretty($value, $keyValue = '', $level = 0)
 {
     if (isSimpleValue($value)) {
         return $keyValue ?
@@ -53,7 +55,7 @@ function getString($value, $keyValue = '', $level = 0)
     $result[] = $keyValue ? "$keyValue: $openBracket" : "$openBracket";
     $result[] = $collection->map(function ($item, $key) use (&$level, $value) {
         $key = is_array($value) ? '' : $key;
-        return getSpace($level + 1) . "  " . getString($item, $key, $level + 1);
+        return getSpace($level + 1) . "  " . getPretty($item, $key, $level + 1);
     })->implode("\n");
     $result[] = getSpace($level) . "  $closeBracket";
 
