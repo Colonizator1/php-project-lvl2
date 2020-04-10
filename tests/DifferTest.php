@@ -10,15 +10,19 @@ class DifferTest extends TestCase
 {
     public function testDiff()
     {
-        $expected_pretty = file_get_contents("tests/fixtures/result_pretty");
-        $expected_plain = file_get_contents("tests/fixtures/result_plain");
-        $expected_json = file_get_contents("tests/fixtures/result_json");
+        $getFilePath = function ($fileName) {
+            return __DIR__ . "/fixtures/{$fileName}";
+        };
 
-        $jsonOne = "tests/fixtures/before.json";
-        $jsonTwo = "tests/fixtures/after.json";
+        $expected_pretty = file_get_contents($getFilePath("result_pretty"));
+        $expected_plain = file_get_contents($getFilePath("result_plain"));
+        $expected_json = file_get_contents($getFilePath("result_json"));
+
+        $jsonOne = $getFilePath("before.json");
+        $jsonTwo = $getFilePath("after.json");
         
-        $yamlOne = "tests/fixtures/before.yaml";
-        $yamlTwo = "tests/fixtures/after.yaml";
+        $yamlOne = $getFilePath("before.yaml");
+        $yamlTwo = $getFilePath("after.yaml");
 
         $this->assertEquals($expected_pretty, getDiff($jsonOne, $jsonTwo));
         $this->assertEquals($expected_pretty, getDiff($yamlOne, $yamlTwo));

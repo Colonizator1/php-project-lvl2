@@ -9,6 +9,6 @@ before_script:
   - ./cc-test-reporter before-build
 install: make install
 script: make lint
-script: make test
+script: make test_coverage
 after_script:
   - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT; fi

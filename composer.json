@@ -13,6 +13,9 @@
         "bin/getdiff"
     ],
     "autoload": {
+        "psr-4": {
+            "Differ\\Tests\\": "tests"
+        },
         "files": [
             "src/diff.php",
             "src/parser.php",

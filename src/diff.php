@@ -33,8 +33,22 @@ DOC;
 
 function getDiff($firstFilePath, $secondFilePath, $format = "pretty")
 {
-    $firstValues = parse($firstFilePath);
-    $secondValues = parse($secondFilePath);
+    $firstFileContent = file_get_contents($firstFilePath);
+    $secondFileContent = file_get_contents($secondFilePath);
+    $firstFilePathParts = pathinfo($firstFilePath);
+    $secondFilePathParts = pathinfo($secondFilePath);
+    if ($firstFileContent === false) {
+        throw new \Exception("Can't read file by: {$firstFilePath}");
+    }
+    if ($secondFileContent === false) {
+        throw new \Exception("Can't read file by: {$secondFilePath}");
+    }
+    try {
+        $firstValues = parse($firstFileContent, $firstFilePathParts['extension']);
+        $secondValues = parse($secondFileContent, $secondFilePathParts['extension']);
+    } catch (\Exception $e) {
+        echo $e->getMessage(), "\n";
+    }
     $diffTree = getDiffTree($firstValues, $secondValues);
 
     switch ($format) {
