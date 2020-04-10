@@ -43,12 +43,8 @@ function getDiff($firstFilePath, $secondFilePath, $format = "pretty")
     if ($secondFileContent === false) {
         throw new \Exception("Can't read file by: {$secondFilePath}");
     }
-    try {
-        $firstValues = parse($firstFileContent, $firstFilePathParts['extension']);
-        $secondValues = parse($secondFileContent, $secondFilePathParts['extension']);
-    } catch (\Exception $e) {
-        echo $e->getMessage(), "\n";
-    }
+    $firstValues = parse($firstFileContent, $firstFilePathParts['extension']);
+    $secondValues = parse($secondFileContent, $secondFilePathParts['extension']);
     $diffTree = getDiffTree($firstValues, $secondValues);
 
     switch ($format) {

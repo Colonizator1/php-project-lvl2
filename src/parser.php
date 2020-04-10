@@ -7,7 +7,11 @@ use Symfony\Component\Yaml\Yaml;
 function parse($content, $type)
 {
     if ($type == 'json') {
-        return json_decode($content);
+        $result = json_decode($content);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \Exception("json error: " . json_last_error());
+        }
+        return $result;
     } elseif ($type == 'yaml') {
         return Yaml::parse($content, Yaml::PARSE_OBJECT_FOR_MAP);
     } else {
