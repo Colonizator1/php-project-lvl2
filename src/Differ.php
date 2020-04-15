@@ -55,9 +55,9 @@ function getDiffTree($firstData, $secondData)
                 $newValue = null;
                 $children = null;
             } else {
-                $status = $firstObj->get($key) == $secondObj->get($key) ? 'unchanged' : "changed";
                 $oldValue = $firstObj->get($key);
                 $newValue = $secondObj->get($key);
+                $status = $oldValue == $newValue ? 'unchanged' : "changed";
                 $children = is_object($oldValue) && is_object($newValue) ?
                 $buildTree(collect($oldValue), collect($newValue)) : null;
             }
