@@ -1,6 +1,6 @@
 <?php
 
-namespace Differ\Formatters\pretty;
+namespace Differ\Formatters\Pretty;
 
 use Tightenco\Collect;
 

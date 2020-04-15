@@ -17,11 +17,11 @@
             "Differ\\Tests\\": "tests"
         },
         "files": [
-            "src/diff.php",
-            "src/parser.php",
-            "src/Formatters/plain.php",
-            "src/Formatters/pretty.php",
-            "src/Formatters/json.php"
+            "src/Differ.php",
+            "src/Parser.php",
+            "src/Formatters/Plain.php",
+            "src/Formatters/Pretty.php",
+            "src/Formatters/Json.php"
         ]
     },
     "scripts": {

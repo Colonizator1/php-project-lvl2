@@ -1,6 +1,6 @@
 <?php
 
-namespace Differ\Formatters\json;
+namespace Differ\Formatters\Json;
 
 use Tightenco\Collect;
 
