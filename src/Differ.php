@@ -15,10 +15,10 @@ function getDiff($firstFilePath, $secondFilePath, $format = "pretty")
     $secondFileContent = file_get_contents($secondFilePath);
     $firstFilePathParts = pathinfo($firstFilePath);
     $secondFilePathParts = pathinfo($secondFilePath);
-    if (!$firstFileContent) {
+    if ($firstFileContent === false) {
         throw new \Exception("Can't read file by: {$firstFilePath}");
     }
-    if (!$secondFileContent) {
+    if ($secondFileContent === false) {
         throw new \Exception("Can't read file by: {$secondFilePath}");
     }
     $firstValues = parse($firstFileContent, $firstFilePathParts['extension']);
