@@ -4,27 +4,34 @@ namespace Differ\Formatters\Pretty;
 
 use Tightenco\Collect;
 
+use function Differ\Functions\simpleValueToString;
+use function Differ\Functions\isSimpleValue;
+
 function renderPretty($tree)
 {
     $render = function ($tree, $level = 0) use (&$render) {
         $result = $tree->reduce(function ($acc, $node) use ($level, &$render) {
-            if (!$node['children']) {
-                $newValue = getPretty($node['newValue'], $node['key'], $level);
-                $oldValue = getPretty($node['oldValue'], $node['key'], $level);
-                if ($node['status'] == 'added') {
+            $newValue = getPrettyNode($node['newValue'], $node['key'], $level);
+            $oldValue = getPrettyNode($node['oldValue'], $node['key'], $level);
+            switch ($node['status']) {
+                case 'added':
                     $acc[] = getSpace($level) . "+ {$newValue}";
-                } elseif ($node['status'] == 'deleted') {
+                    break;
+                case 'deleted':
                     $acc[] = getSpace($level) . "- {$oldValue}";
-                } elseif ($node['status'] == 'changed') {
-                    $acc[] = getSpace($level) . "- {$oldValue}";
-                    $acc[] = getSpace($level) . "+ {$newValue}";
-                } else {
+                    break;
+                case 'unchanged':
                     $acc[] = getSpace($level) . "  {$oldValue}";
-                }
-            } else {
-                $acc[] = getSpace($level) . "  {$node['key']}: {";
-                $acc[] = implode("\n", $render($node['children'], $level + 1));
-                $acc[] = getSpace($level) . "  }";
+                    break;
+                case 'changed':
+                    $acc[] = getSpace($level) . "- {$oldValue}";
+                    $acc[] = getSpace($level) . "+ {$newValue}";
+                    break;
+                case 'parent':
+                    $acc[] = getSpace($level) . "  {$node['key']}: {";
+                    $acc[] = implode("\n", $render($node['children'], $level + 1));
+                    $acc[] = getSpace($level) . "  }";
+                    break;
             }
             return $acc;
         }, []);
@@ -33,7 +40,7 @@ function renderPretty($tree)
     return "{\n" . implode("\n", $render($tree)) . "\n}\n";
 }
 
-function getPretty($value, $keyValue = '', $level = 0)
+function getPrettyNode($value, $keyValue = '', $level = 0)
 {
     if (isSimpleValue($value)) {
         return $keyValue ?
@@ -55,31 +62,11 @@ function getPretty($value, $keyValue = '', $level = 0)
     $result[] = $keyValue ? "$keyValue: $openBracket" : "$openBracket";
     $result[] = $collection->map(function ($item, $key) use (&$level, $value) {
         $key = is_array($value) ? '' : $key;
-        return getSpace($level + 1) . "  " . getPretty($item, $key, $level + 1);
+        return getSpace($level + 1) . "  " . getPrettyNode($item, $key, $level + 1);
     })->implode("\n");
     $result[] = getSpace($level) . "  $closeBracket";
 
     return implode("\n", $result);
-}
-
-function simpleValueToString($value)
-{
-    switch (gettype($value)) {
-        case 'boolean':
-            return $value ? 'true' : 'false';
-            break;
-        case 'NULL':
-            return "null";
-            break;
-        default:
-            return "$value";
-            break;
-    }
-}
-function isSimpleValue($value)
-{
-    $type = gettype($value);
-    return $type == 'array' || $type == 'object' ? false : true;
 }
 
 function getSpace(int $level)

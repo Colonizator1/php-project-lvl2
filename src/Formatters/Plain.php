@@ -4,42 +4,46 @@ namespace Differ\Formatters\Plain;
 
 use Tightenco\Collect;
 
-use function Differ\Formatters\pretty\simpleValueToString;
-use function Differ\Formatters\pretty\isSimpleValue;
+use function Differ\Functions\simpleValueToString;
+use function Differ\Functions\isSimpleValue;
 
 function renderPlain($tree)
 {
-    $map = function ($tree, $closure, $key = '') use (&$map) {
-        return $tree->map(function ($node) use (&$closure, &$map, $key) {
+    $myMap = function ($tree, $key = '') use (&$myMap) {
+        return $tree->map(function ($node) use (&$myMap, $key) {
+            $newValue = isSimpleValue($node['newValue']) ?
+            simpleValueToString($node['newValue']) : 'complex value';
+
+            $oldValue = isSimpleValue($node['oldValue']) ?
+            simpleValueToString($node['oldValue']) : 'complex value';
+
             $children = $node['children'] ?? null;
-            $key = $key ? "$key.{$node['key']}" : $node['key'];
-            if (!$children) {
-                return $closure($key, $node);
-            } else {
-                return $map($node['children'], $closure, $key);
+
+            $keys = $key ? [$key, $node['key']] : [$node['key']];
+            
+            $fullKey = implode('.', $keys);
+
+            switch ($node['status']) {
+                case 'added':
+                    $result = "Property '{$fullKey}' was added  with value: '{$newValue}'\n";
+                    break;
+                case 'deleted':
+                    $result = "Property '{$fullKey}' was removed\n";
+                    break;
+                case 'unchanged':
+                    $result = null;
+                    break;
+                case 'changed':
+                    $result = "Property '{$fullKey}' was changed. From '{$oldValue}' to '{$newValue}'\n";
+                    break;
+                case 'parent':
+                    $result = $myMap($node['children'], $fullKey);
+                    break;
             }
-        })->flatten();
+            return $result;
+        })->filter(function ($value) {
+            return $value;
+        })->implode("");
     };
-    $mapped = $map($tree, function ($key, $node) {
-        $newValue = isSimpleValue($node['newValue']) ?
-        simpleValueToString($node['newValue']) : 'complex value';
-
-        $oldValue = isSimpleValue($node['oldValue']) ?
-        simpleValueToString($node['oldValue']) : 'complex value';
-
-        if ($node['status'] == 'added') {
-            $result = "Property '{$key}' was added  with value: '{$newValue}'\n";
-        } elseif ($node['status'] == 'deleted') {
-            $result = "Property '{$key}' was removed\n";
-        } elseif ($node['status'] == 'changed') {
-            $result = "Property '{$key}' was changed. From '{$oldValue}' to '{$newValue}'\n";
-        } elseif ($node['status'] == 'unchanged') {
-            $result = null;
-        }
-        return $result;
-    })->filter(function ($value) {
-        return $value;
-    })->implode("");
-
-    return $mapped;
+    return $myMap($tree);
 }

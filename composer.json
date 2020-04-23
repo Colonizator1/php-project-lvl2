@@ -19,6 +19,7 @@
         "files": [
             "src/Differ.php",
             "src/Parser.php",
+            "src/Functions.php",
             "src/Formatters/Plain.php",
             "src/Formatters/Pretty.php",
             "src/Formatters/Json.php"
