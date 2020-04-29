@@ -7,7 +7,13 @@ use Tightenco\Collect;
 use function Differ\Functions\simpleValueToString;
 use function Differ\Functions\isSimpleValue;
 
-function renderPretty($tree, $level = 0)
+function renderPretty($tree)
+{
+    $result = iter($tree);
+    return "{\n" . $result . "\n}";
+}
+
+function iter($tree, $level = 0)
 {
     $result = $tree->reduce(function ($acc, $node) use ($level) {
         $newValue = getPrettyNode($node['newValue'], $node['key'], $level);
@@ -28,15 +34,12 @@ function renderPretty($tree, $level = 0)
                 break;
             case 'parent':
                 $acc[] = getSpace($level) . "  {$node['key']}: {";
-                $acc[] = renderPretty($node['children'], $level + 1);
+                $acc[] = iter($node['children'], $level + 1);
                 $acc[] = getSpace($level) . "  }";
                 break;
         }
         return $acc;
     }, []);
-    if ($level == 0) {
-        return "{\n" . implode("\n", $result) . "\n}";
-    }
     return implode("\n", $result);
 }
 
