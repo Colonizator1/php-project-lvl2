@@ -27,4 +27,4 @@ $result = \Docopt::handle($doc, array('version' => '1.0', 'firstFile', 'secondFi
 $firstFilePath = $result->args['<firstFile>'];
 $secondFilePath = $result->args['<secondFile>'];
 $format = $result->args['--format'];
-print_r(getDiff($firstFilePath, $secondFilePath, $format));
+print_r(getDiff($firstFilePath, $secondFilePath, $format) . "\n");

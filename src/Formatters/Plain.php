@@ -11,30 +11,24 @@ function renderPlain($tree)
 {
     $myMap = function ($tree, $key = '') use (&$myMap) {
         return $tree->map(function ($node) use (&$myMap, $key) {
-            $newValue = isSimpleValue($node['newValue']) ?
-            simpleValueToString($node['newValue']) : 'complex value';
-
-            $oldValue = isSimpleValue($node['oldValue']) ?
-            simpleValueToString($node['oldValue']) : 'complex value';
-
-            $children = $node['children'] ?? null;
+            $newValue = getPlainValue($node['newValue']);
+            $oldValue = getPlainValue($node['oldValue']);
 
             $keys = $key ? [$key, $node['key']] : [$node['key']];
-            
             $fullKey = implode('.', $keys);
 
             switch ($node['status']) {
                 case 'added':
-                    $result = "Property '{$fullKey}' was added  with value: '{$newValue}'\n";
+                    $result = "Property '{$fullKey}' was added  with value: '{$newValue}'";
                     break;
                 case 'deleted':
-                    $result = "Property '{$fullKey}' was removed\n";
+                    $result = "Property '{$fullKey}' was removed";
                     break;
                 case 'unchanged':
                     $result = null;
                     break;
                 case 'changed':
-                    $result = "Property '{$fullKey}' was changed. From '{$oldValue}' to '{$newValue}'\n";
+                    $result = "Property '{$fullKey}' was changed. From '{$oldValue}' to '{$newValue}'";
                     break;
                 case 'parent':
                     $result = $myMap($node['children'], $fullKey);
@@ -43,7 +37,12 @@ function renderPlain($tree)
             return $result;
         })->filter(function ($value) {
             return $value;
-        })->implode("");
+        })->implode("\n");
     };
     return $myMap($tree);
+}
+
+function getPlainValue($value)
+{
+    return isSimpleValue($value) ? simpleValueToString($value) : 'complex value';
 }
